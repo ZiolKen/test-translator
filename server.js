@@ -1,35 +1,36 @@
 import express from "express";
 import multer from "multer";
-import fs from "fs";
 import path from "path";
 import { translateFile, mergeBack } from "./translator.js";
 
 const app = express();
-const upload = multer({ dest: "uploads/" });
-const PORT = 3000;
+const upload = multer({ storage: multer.memoryStorage() });
 
 app.use(express.static("public"));
-app.use("/dist", express.static("dist"));
 
 const sessions = new Map();
 
 app.post("/upload", upload.single("file"), async (req, res) => {
-  const filePath = req.file.path;
-  const originalName = req.file.originalname;
-  const sessionId = path.basename(filePath);
+  const { originalname, buffer } = req.file;
+  const sessionId = Date.now().toString(36);
 
   try {
-    sessions.set(sessionId, { status: "processing", progress: 0, filePath });
+    sessions.set(sessionId, { status: "processing", progress: 0 });
 
-    translateFile(filePath, "auto", "vi", ({ progress }) => {
+    const inputText = buffer.toString("utf8");
+
+    translateFile(inputText, "auto", "vi", ({ progress }) => {
       const sess = sessions.get(sessionId);
       if (sess) sess.progress = progress;
     })
       .then(({ id, result }) => {
-        const merged = mergeBack(filePath, result);
-        const outputPath = `dist/${id}-translated${path.extname(originalName)}`;
-        fs.writeFileSync(outputPath, merged);
-        sessions.set(sessionId, { status: "done", progress: 100, download: `/dist/${path.basename(outputPath)}` });
+        const merged = mergeBack(inputText, result);
+        sessions.set(sessionId, {
+          status: "done",
+          progress: 100,
+          download: `/download/${sessionId}?name=${encodeURIComponent(originalname)}`,
+          merged,
+        });
       })
       .catch((err) => {
         sessions.set(sessionId, { status: "error", error: err.message });
@@ -48,4 +49,14 @@ app.get("/progress/:id", (req, res) => {
   res.json(sess);
 });
 
-app.listen(PORT, () => console.log(`✅ Server running at http://localhost:${PORT}`));
+app.get("/download/:id", (req, res) => {
+  const sess = sessions.get(req.params.id);
+  if (!sess || sess.status !== "done") return res.status(404).send("Not ready");
+  const filename =
+    req.query.name?.replace(/\.rpy$/, "") + "-translated.rpy" || "translated.rpy";
+  res.setHeader("Content-Type", "text/plain; charset=utf-8");
+  res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+  res.send(sess.merged);
+});
+
+export default app; // ✅ important for Vercel

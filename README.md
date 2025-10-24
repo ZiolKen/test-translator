@@ -1,2 +1,2 @@
-# test-translator
-Test
+# Test Translator
+For test purpose

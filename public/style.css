@@ -14,83 +14,9 @@ body {
   background-blend-mode: screen;
   filter: blur(45px) brightness(1.2);
   overflow: hidden;
-}
-
-.container {
-  background: rgba(0, 0, 0, var(--bg-opacity));
-  backdrop-filter: blur(8px);
-}
-
-@keyframes chromaGlow {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-body {
   font-family: "Segoe UI", sans-serif;
   height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-}
-
-.container {
-  padding: 40px 50px;
-  border-radius: 15px;
-  box-shadow: 0 0 15px rgba(0,0,0,0.15);
-  text-align: center;
-  width: 400px;
-}
-
-h1 {
-  margin-bottom: 25px;
-}
-
-input[type="file"] {
-  margin-bottom: 15px;
-}
-
-button {
-  background: #007bff;
-  color: #fff;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-button:hover {
-  background: #0056b3;
-}
-
-#status {
-  margin-top: 20px;
-  font-weight: 600;
-}
-
-#progressBar {
-  margin-top: 10px;
-  background: #eee;
-  border-radius: 10px;
-  height: 15px;
-  width: 100%;
-  overflow: hidden;
-}
-#progress {
-  background: #28a745;
-  height: 100%;
-  width: 0%;
-  transition: width 0.5s ease;
-}
-
-#downloadLink {
-  display: block;
-  margin-top: 15px;
-  font-weight: bold;
-  color: #28a745;
-  text-decoration: none;
-}
-#downloadLink:hover {
-  text-decoration: underline;
 }

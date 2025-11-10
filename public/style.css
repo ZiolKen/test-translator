@@ -1,22 +1,27 @@
-:root {
-  --chroma-colors: linear-gradient(
-    270deg,
-    #00b5ff,
-    #ff00d4,
-    #8fff00,
-    #ff8c00,
-    #7000ff,
-    #00b5ff
-  );
-  --bg-opacity: 0.15;
-  --anim-speed: 12s;
+body {
+  margin: 0;
+  height: 100vh;
+  background: radial-gradient(circle at 20% 20%, #5b2cff, transparent 60%),
+              radial-gradient(circle at 80% 30%, #ff4fd8, transparent 60%),
+              radial-gradient(circle at 50% 80%, #00d4ff, transparent 60%),
+              radial-gradient(circle at 10% 90%, #1e1f4b, transparent 60%);
+  background-color: #0f1020;
+  background-blend-mode: screen;
+  filter: blur(60px) brightness(1.2);
+  animation: glowMove 15s ease-in-out infinite alternate;
+  overflow: hidden;
 }
 
-body {
-  background: var(--chroma-colors);
-  background-size: 600% 600%;
-  animation: chromaGlow var(--anim-speed) ease infinite;
-  color: #fff;
+@keyframes glowMove {
+  0% {
+    background-position: 0% 0%, 100% 0%, 0% 100%, 100% 100%;
+  }
+  50% {
+    background-position: 50% 50%, 50% 0%, 50% 100%, 0% 50%;
+  }
+  100% {
+    background-position: 100% 100%, 0% 100%, 100% 0%, 50% 50%;
+  }
 }
 
 .container {

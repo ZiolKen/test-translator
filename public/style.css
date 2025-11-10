@@ -1,15 +1,44 @@
+:root {
+  --chroma-colors: linear-gradient(
+    270deg,
+    #00b5ff,
+    #ff00d4,
+    #8fff00,
+    #ff8c00,
+    #7000ff,
+    #00b5ff
+  );
+  --bg-opacity: 0.15;
+  --anim-speed: 12s;
+}
+
+body {
+  background: var(--chroma-colors);
+  background-size: 600% 600%;
+  animation: chromaGlow var(--anim-speed) ease infinite;
+  color: #fff;
+}
+
+.container {
+  background: rgba(0, 0, 0, var(--bg-opacity));
+  backdrop-filter: blur(8px);
+}
+
+@keyframes chromaGlow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
 body {
   font-family: "Segoe UI", sans-serif;
-  background: linear-gradient(120deg, #a1c4fd, #c2e9fb);
   height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  color: #333;
 }
 
 .container {
-  background: #fff;
   padding: 40px 50px;
   border-radius: 15px;
   box-shadow: 0 0 15px rgba(0,0,0,0.15);

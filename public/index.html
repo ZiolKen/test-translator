@@ -2,68 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>🪄 Game Translator - Web</title>
+  <title>theme/background test</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="container">
-    <h1>🎮 Web Translator</h1>
-    <form id="uploadForm">
-      <input type="file" name="file" id="file" accept=".json,.rpy" required />
-      <button type="submit">Start Translation</button>
-    </form>
-    <div id="status">No progress yet</div>
-    <div id="progressBar"><div id="progress"></div></div>
-    <a id="downloadLink" style="display:none;">⬇️ Download Translated File</a>
-  </div>
-
-  <script>
-    const form = document.getElementById("uploadForm");
-    const status = document.getElementById("status");
-    const progressBar = document.getElementById("progress");
-    const downloadLink = document.getElementById("downloadLink");
-
-    let sessionId = null;
-
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const formData = new FormData(form);
-      status.textContent = "⏳ Uploading...";
-      progressBar.style.width = "0%";
-      downloadLink.style.display = "none";
-
-      const res = await fetch("/upload", { method: "POST", body: formData });
-      const data = await res.json();
-      if (data.success) {
-        sessionId = data.sessionId;
-        status.textContent = "🚀 Translating...";
-        checkProgress();
-      } else {
-        status.textContent = "❌ Upload failed";
-      }
-    });
-
-    async function checkProgress() {
-      if (!sessionId) return;
-      const interval = setInterval(async () => {
-        const res = await fetch("/progress/" + sessionId);
-        const data = await res.json();
-
-        if (data.status === "processing") {
-          progressBar.style.width = data.progress + "%";
-          status.textContent = `Translating... ${data.progress}%`;
-        } else if (data.status === "done") {
-          clearInterval(interval);
-          progressBar.style.width = "100%";
-          status.textContent = "✅ Translation complete!";
-          downloadLink.href = data.download;
-          downloadLink.style.display = "inline-block";
-        } else if (data.status === "error") {
-          clearInterval(interval);
-          status.textContent = "❌ Error: " + data.error;
-        }
-      }, 2000);
-    }
-  </script>
 </body>
 </html>

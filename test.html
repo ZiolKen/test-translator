@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+  <meta charSet="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta content="ie=edge" http-equiv="X-UA-Compatible" />
+  <link rel="icon" type="image/png" href="assets/ico.png" />
+  <title>ZiolKen | Bot Status</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="preload" href="https://challenges.cloudflare.com/turnstile/v0/api.js" as="script" />
+  <meta name="theme-color" content="#000000" />
+  <!-- <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.23.0/themes/prism.min.css" rel="stylesheet" /> -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.23.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.23.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.23.0/components/prism-cpp.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.23.0/components/prism-java.min.js"></script>
+  <link rel="manifest" href="assets/manifest.json" />
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/ico.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/ico.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/ico.png" />
+  <meta name="description" content="@ジオルケン | Discord bot status, current system info & status, real-time update. • @ZiolKen." />
+  <meta name="author" content="@ジオルケン | Bot Status" />
+  <meta property="og:title" content="@ジオルケン | Bot Status" />
+  <meta property="og:description" content="@ジオルケン | Discord bot status, current system info & status, real-time update. • @ZiolKen." />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="@ジオルケン | Bot Status" />
+  <meta name="twitter:description" content="@ジオルケン | Discord bot status, current system info & status, real-time update. • @ZiolKen." />
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <header></header>
+  <div class="status-header">
+    <div id="status-banner" class="status-indicator">
+      <div class="spinner" id="spinner"></div>
+    </div>
+    <a href="https://discord.com/oauth2/authorize?client_id=1398238289500307578&scope=bot&permissions=8" 
+      target="_blank" 
+      class="invite-card">
+    <img src="assets/discord.png"
+         alt="Discord"
+         class="discord-logo" />
+    Invite Bot
+  </a>
+  </div>
+
+  <div class="card" id="status-card">
+    <div>
+      <div class="label">Host Service</div>
+      <div class="value" id="host">--</div>
+    </div>
+    <div>
+      <div class="label">Ping</div>
+      <div class="value" id="ping">--</div>
+    </div>
+    <div>
+      <div class="label">Uptime</div>
+      <div class="value" id="uptime">--</div>
+    </div>
+    <div>
+      <div class="label">Servers</div>
+      <div class="value" id="guilds">--</div>
+    </div>
+    <div>
+      <div class="label">Users</div>
+      <div class="value" id="users">--</div>
+    </div>
+    <div>
+      <div class="label">Last Update</div>
+      <div class="value" id="updated">--</div>
+    </div>
+  </div>
+
+  <div class="services">
+    <h2>🔧 Services</h2>
+    <div class="service">
+      <span>Discord Gateway</span>
+      <span class="online-dot">● Online</span>
+    </div>
+    <div class="service">
+      <span>Command System</span>
+      <span class="online-dot">● Online</span>
+    </div>
+    <div class="service">
+      <span>API Endpoint</span>
+      <span class="online-dot" id="api-status">● Online</span>
+    </div>
+  </div>
+
+<div class="incidents">
+  <h2>🚨 Incidents History</h2>
+  <div id="incidents-list">
+    Loading incidents...
+  </div>
+</div>
+
+  <div class="chart-container">
+    <h2>📈 Ping History</h2>
+    <canvas id="pingChart" height="100"></canvas>
+  </div>
+
+  <div class="tech">
+    <h2>🧠 Technical Info</h2>
+    <div class="service"><span>Bot Version</span><span>1.2.7</span></div>
+    <div class="service"><span>discord.js</span><span>14.13.0</span></div>
+    <div class="service"><span>Node.js</span><span>22.16.0</span></div>
+    <div class="service"><span>Last Boot</span><span id="boot">--</span></div>
+  </div>
+
+  <footer>
+    © 2025 ZiolKen | Bot Status
+  </footer>
+  
+<script>
+const STATUS_URL = "https://discord-bot-us.onrender.com/status";
+const INCIDENTS_URL = "https://discord-bot-us.onrender.com/incidents";
+
+let pingChart;
+
+document.addEventListener("DOMContentLoaded", () => {
+  initChart();
+  loadAll();
+  setInterval(loadAll, 5000);
+});
+
+function initChart() {
+  pingChart = new Chart(document.getElementById('pingChart'), {
+    type: 'line',
+    data: { labels: [], datasets: [{
+      data: [],
+      borderColor: '#3b82f6',
+      tension: 0.35,
+      fill: false
+    }]},
+    options: {
+      plugins: { legend: { display: false }},
+      scales: {
+        x: { display: false },
+        y: { beginAtZero: true }
+      }
+    }
+  });
+}
+
+async function loadAll() {
+  await Promise.all([loadStatus(), loadIncidents()]);
+}
+
+async function loadStatus() {
+  try {
+    const res = await fetch(STATUS_URL);
+    const d = await res.json();
+
+    const online = d.status === "online";
+    const banner = document.getElementById("status-banner");
+    banner.textContent = online ? "All Systems Operational" : "Service Disruption";
+    banner.className = `status-indicator ${online ? "online" : "offline"}`;
+
+    document.getElementById("ping").textContent = d.ping + " ms";
+    document.getElementById("uptime").textContent = d.uptime;
+    document.getElementById("guilds").textContent = d.guilds;
+    document.getElementById("users").textContent = d.users;
+    document.getElementById("updated").textContent = new Date(d.updated).toLocaleString();
+
+    updateServices(d.services, d.ping);
+    updateChart(d.ping);
+  } catch {
+    document.getElementById("status-banner").textContent = "Bot Offline";
+  }
+}
+
+function updateServices(services, ping) {
+  const map = {
+    api: "API Endpoint",
+    gateway: "Discord Gateway",
+    commands: "Command System"
+  };
+
+  document.querySelector(".services").innerHTML =
+    `<h2>Services</h2>` +
+    Object.entries(map).map(([k, name]) => {
+      let state = services[k];
+      if (state === "online" && ping > 300) state = "degraded";
+      return `
+        <div class="service">
+          <span>${name}</span>
+          <span class="status-dot ${state}">
+            ${state === "online" ? "Operational" :
+              state === "degraded" ? "Degraded" : "Offline"}
+          </span>
+        </div>`;
+    }).join("");
+}
+
+function updateChart(ping) {
+  const t = new Date().toLocaleTimeString();
+  if (pingChart.data.labels.length >= 40) {
+    pingChart.data.labels.shift();
+    pingChart.data.datasets[0].data.shift();
+  }
+  pingChart.data.labels.push(t);
+  pingChart.data.datasets[0].data.push(ping);
+  pingChart.update();
+}
+
+async function loadIncidents() {
+  try {
+    const res = await fetch(INCIDENTS_URL);
+    const list = await res.json();
+
+    const box = document.getElementById("incidents-list");
+    if (!list.length) {
+      box.innerHTML = `<div class="incident">No incidents reported 🎉</div>`;
+      return;
+    }
+
+    box.innerHTML = list.map(i => `
+      <div class="incident">
+        <div class="incident-title">${i.title}</div>
+        <div class="incident-meta">
+          ${i.status.toUpperCase()} • ${new Date(i.createdAt).toLocaleString()}
+        </div>
+        <div class="incident-meta">${i.description || ""}</div>
+      </div>
+    `).join("");
+  } catch {
+    document.getElementById("incidents-list").innerHTML =
+      `<div class="incident">Failed to load incidents</div>`;
+  }
+}
+</script>
+  
+  <script>
+  
+  console.log('%c░██████╗████████╗░█████╗░██████╗░██╗\n██╔════╝╚══██╔══╝██╔══██╗██╔══██╗██║\n╚█████╗░░░░██║░░░██║░░██║██████╔╝██║\n░╚═══██╗░░░██║░░░██║░░██║██╔═══╝░╚═╝\n██████╔╝░░░██║░░░╚█████╔╝██║░░░░░██╗\n╚═════╝░░░░╚═╝░░░░╚════╝░╚═╝░░░░░╚═╝', 'color: red; font-weight: bold;');
+
+  function animateClickCard(el) {
+    el.classList.remove('spin');         
+    void el.offsetWidth;        
+    el.classList.add('spin');
+    setTimeout(() => el.classList.remove('spin'), 600);
+  }
+  </script>
+
+<script>
+        document.addEventListener("contextmenu", e => e.preventDefault());
+
+        document.addEventListener("keydown", e => {
+          if (
+            e.key === "F12" ||
+            (e.ctrlKey && e.shiftKey && ["I", "J", "C"].includes(e.key)) ||
+            (e.ctrlKey && e.key === "U")
+          ) {
+            e.preventDefault();
+          }
+        });
+
+        console.log('%c░██████╗████████╗░█████╗░██████╗░██╗\n██╔════╝╚══██╔══╝██╔══██╗██╔══██╗██║\n╚█████╗░░░░██║░░░██║░░██║██████╔╝██║\n░╚═══██╗░░░██║░░░██║░░██║██╔═══╝░╚═╝\n██████╔╝░░░██║░░░╚█████╔╝██║░░░░░██╗\n╚═════╝░░░░╚═╝░░░░╚════╝░╚═╝░░░░░╚═╝', 'color: red; font-weight: bold;');
+</script>
+
+</body>
+
+</html>

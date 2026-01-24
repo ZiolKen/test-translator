@@ -10,6 +10,9 @@
     "lint": "eslint .",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
+  "engines": {
+    "node": "20.x"
+  },
   "dependencies": {
     "dexie": "^4.0.10",
     "jszip": "^3.10.1",
